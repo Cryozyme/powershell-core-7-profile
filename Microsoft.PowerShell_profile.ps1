@@ -6,55 +6,55 @@ $env:Path += ";$env:PROGRAMFILES(x86)\Steam"
 $env:Path += ";$env:PROGRAMFILES(x86)\OpenOffice 4\program"
 $env:Path += ";$env:PROGRAMFILES(x86)\Adobe\Acrobat Reader DC\Reader"
 $env:Path += ";$env:PROGRAMFILES(x86)\Resource Hacker"
-$env:Path += ";$env:PROGRAMFILES\Google\Chrome\Application"
+$env:Path += ";$env:LOCALAPPDATA\Thorium\Application"
 $env:Path += ";$env:PROGRAMFILES\ookla-speedtest-1.2.0-win64"
-$env:Path += ";$env:PROGRAMFILES(x86)\GnuWin32\bin"
 $env:Path += ";$env:LOCALAPPDATA\Programs\signal-desktop"
 $env:Path += ";$env:PROGRAMFILES\SysinternalsSuite"
 #Path Variables End#
 
 #Functions#
-function shutdown([String]$argument0, [String]$argument1, [String]$argument2, [String]$argument3, [String]$argument4, [String]$argument5, [String]$argument6, [String]$argument7, [String]$argument8, [String]$argument9) {
+function shutdown() {
 
-    [String[]]$arguments=$argument0, $argument1, $argument2, $argument3, $argument4, $argument5, $argument6, $argument7, $argument8, $argument9
+    [CmdletBinding()]
+    param(
     
-    $arguments.ForEach(
-
-        {
-
-            $i=0
-
-            if($null -eq $arguments[$i]) {
-                
-                $i++
-                $arguments[$i]=$arguments[$i].Replace($null, "")
-
-            } else {
-
-                $i++
-                $arguments[$i]=$arguments[$i].Trim("`n").Trim(" ").ToLower()
-
-            }
-
-        }
-
+        [String[]]$arguments
+    
     )
 
-    if($arguments -eq "now") {
+    try {
 
-        shutdown.exe /s /t 0
+        if($null -eq $arguments) {
+            
+            Write-Verbose -Message "No Arguments Supplied"
 
-    } elseif($arguments[0] -eq "/t" -and($arguments[1].ToInt32($null) -is [Int32])) {
+            shutdown.exe /?
+        
+        } elseif($arguments -eq "now") {
+            
+            Write-Verbose -Message "Shutting Down Immediately"
 
-        shutdown.exe /s /t $arguments[1]
+            shutdown.exe /s /t 0
 
-    } elseif($arguments -eq "/a") {
+        } elseif($arguments[0] -eq "/t" -and($arguments[1].ToInt32($null) -is [Int32])) {
+            
+            Write-Verbose -Message "Shutting Down In $($arguments[1]) Seconds"
 
-        shutdown.exe /a
+            [String[]]$arguments = $arguments.Trim(",")
+            shutdown.exe /s $arguments
 
-    } else {
+        } else {
+            
+            Write-Verbose -Message "Other Arguments Supplied. Passing Straight Through To Shutdown.exe"
 
-        shutdown.exe $arguments[0] $arguments[1] $arguments[2] $arguments[3] $arguments[4] $arguments[5] $arguments[6] $arguments[7] $arguments[8] $arguments[9]
+            [String[]]$arguments = [String[]]$arguments.Trim(",")
+            shutdown.exe $arguments
+
+        }
+    
+    } catch {
+
+        Write-Debug -Message "$_"
 
     }
 
@@ -62,47 +62,198 @@ function shutdown([String]$argument0, [String]$argument1, [String]$argument2, [S
 
 }
 
-function restart([String]$argument0, [String]$argument1, [String]$argument2, [String]$argument3, [String]$argument4, [String]$argument5, [String]$argument6, [String]$argument7, [String]$argument8, [String]$argument9) {
+function restart() {
 
-    [String[]]$arguments=$argument0, $argument1, $argument2, $argument3, $argument4, $argument5, $argument6, $argument7, $argument8, $argument9
+    [CmdletBinding()]
+    param(
     
-    $arguments.ForEach(
+        [String[]]$arguments
+    
+    )
 
-        {
+    try {
 
-            $i=0
+        if($null -eq $arguments) {
+            
+            Write-Verbose -Message "No Arguments Supplied"
 
-            if($null -eq $arguments[$i]) {
-                
-                $i++
-                $arguments[$i]=$arguments[$i].Replace($null, "")
+            shutdown.exe /?
+        
+        } elseif($arguments -eq "now") {
+            
+            Write-Verbose -Message "Restarting Immediately"
 
-            } else {
+            shutdown.exe /r /t 0
 
-                $i++
-                $arguments[$i]=$arguments[$i].Trim("`n").Trim(" ").ToLower()
+        } elseif($arguments[0] -eq "/t" -and($arguments[1].ToInt32($null) -is [Int32])) {
+            
+            Write-Verbose -Message "Restarting In $($arguments[1]) Seconds"
 
-            }
+            [String[]]$arguments = $arguments.Trim(",")
+            shutdown.exe /r $arguments
+
+        } else {
+            
+            Write-Verbose -Message "Other Arguments Supplied. Passing Straight Through To Shutdown.exe"
+
+            [String[]]$arguments = [String[]]$arguments.Trim(",")
+            shutdown.exe $arguments
 
         }
+    
+    } catch {
+
+        Write-Debug -Message "$_"
+
+    }
+
+    return
+
+}
+
+function spotdl() {
+
+    $spotify_link = Read-Host "Enter Spotify Album or Song or Artist Link"
+    $album_name = Read-Host "Enter the Name of the Song or Album"
+    $artist_name = Read-Host "Enter the Name of the Artist"
+    
+    Start-Process -FilePath "spotdl.exe" -ArgumentList "download $($spotify_link) --format flac --bitrate 320k --threads $((Get-WmiObject -class win32_processor -Property NumberOfLogicalProcessors).NumberOfLogicalProcessors) --audio youtube-music youtube soundcloud --preload --max-retries 5 --output `"$($env:USERPROFILE)\Music\$($artist_name)\$($album_name)`" --m3u `"$($album_name).m3u`" --scan-for-songs --overwrite metadata --sponsor-block --add-unavailable --print-errors" -NoNewWindow -Wait
+    
+    Move-Item -Path "$($env:USERPROFILE)\$($album_name).m3u" -Destination "$($env:USERPROFILE)\Music\$($artist_name)\$($album_name)\$($album_name).m3u" -Force
+
+    return
+}
+
+function speedtest() {
+
+    [CmdletBinding()]
+    param(
+    
+        [String[]]$arguments
+    
+    )
+    
+    try {
+        
+        if($null -eq $arguments) {
+
+            Write-Verbose -Message "No Arguments Supplied"
+
+            speedtest.exe
+
+        } elseif($arguments -eq "--l") {
+
+            [String]$dateyear = "$(Get-Date -Format "yyyy")"
+            [String]$datemonth = "$(Get-Date -Format "MM")"
+            [String]$dateday = "$(Get-Date -Format "dd")"
+            [String]$date = "$(Get-Date -Format "HH.mm.ss")"
+            [String]$folderpath = "$env:USERPROFILE\Documents\speedtests\$dateyear\$datemonth\$dateday"
+
+            Write-Verbose -Message "Long Test Specified. Will Run speedtest.exe Five Times And Output To $($folderpath)"
+            
+            New-Item -Path "$($folderpath)" -ItemType Directory -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue -ProgressAction SilentlyContinue -Force *> $null
+    
+            for($i=0; $i -le 4; $i++) {
+    
+                Start-Process -FilePath "pwsh.exe" -ArgumentList "-NoLogo -Command `"speedtest.exe -P 8 -f human-readable | Out-File -FilePath `"$($folderpath)\speedtest_$date.log`" -Append -Force`"" -NoNewWindow -Wait
+    
+            }
+    
+            $down = (Get-Content -Path "$($folderpath)\speedtest_$date.log" -Force | findstr.exe "Download").Trim("`n").Trim(" ")
+            $up = (Get-Content -Path "$($folderpath)\speedtest_$date.log" -Force | findstr.exe "Upload").Trim("`n").Trim(" ")
+            
+            $down | Format-Table
+            $up | Format-Table
+    
+        } else {
+            
+            Write-Verbose -Message "Other Arguments Supplied. Passing Straight Through To speedtest.exe"
+
+            [String[]]$arguments = [String[]]$arguments.Trim(",")
+
+            speedtest.exe $arguments
+    
+        }
+
+    } catch {
+        
+        Write-Debug -Message "$_"
+
+    }
+
+    return
+
+}
+
+function repair {
+
+    try {
+    
+        Start-Process -FilePath "pwsh.exe" -ArgumentList "-NoLogo -Command `"sfc.exe /verifyonly;sfc.exe /verifyonly;sfc.exe /verifyonly;sfc.exe /scannow;sfc.exe /scannow;sfc.exe /scannow;Dism.exe /Online /Cleanup-Image /CheckHealth;Dism.exe /Online /Cleanup-Image /ScanHealth;Dism.exe /Online /Cleanup-Image /RestoreHealth;chkdsk.exe /F /R /X;restart`"" -Verb RunAs  -WindowStyle Minimized
+
+    } catch [System.InvalidOperationException] {
+        
+        Write-Output -InputObject "Elevation Request Denied. Cannot Continue!"
+
+    }
+    
+    return
+
+}
+
+function ssh() {
+
+    [CmdletBinding()]
+    param(
+
+        [String[]]$arguments
 
     )
 
-    if($arguments -eq "now") {
+    [String]$router = "administrator@192.168.50.1"
 
-        shutdown.exe /r /t 0
+    try {
 
-    } elseif($arguments[0] -eq "/t" -and($arguments[1].ToInt32($null) -is [Int32])) {
+        if($null -eq $arguments) {
+            
+            Write-Verbose -Message "No Arguments Supplied"
 
-        shutdown.exe /r /t $arguments[1]
+            ssh.exe
+        
+        } elseif($arguments -eq "WhichWayTree") {
+            
+            Write-Verbose -Message "SSH Into Router: WhichWayTree"
 
-    } elseif($arguments -eq "/a") {
+            ssh.exe $router
 
-        shutdown.exe /a
+        } else {
+            
+            Write-Verbose -Message "Other Arguments Supplied. Passing Straight Through To ssh.exe"
 
-    } else {
+            [String[]]$arguments = [String[]]$arguments.Trim(",")
+            ssh.exe $arguments
 
-        shutdown.exe $arguments[0] $arguments[1] $arguments[2] $arguments[3] $arguments[4] $arguments[5] $arguments[6] $arguments[7] $arguments[8] $arguments[9]
+        }
+    
+    } catch {
+
+        Write-Debug -Message "$_"
+
+    }
+
+    return
+
+}
+
+function wua() {
+
+    try {
+
+        winget.exe update -u -r -h --force --accept-package-agreements --accept-source-agreements --ignore-security-hash
+            
+    } catch {
+
+        Write-Debug -Message "$_"
 
     }
 
@@ -116,80 +267,8 @@ function cancel {
     taskkill.exe /IM "speedtest.exe" /T /F *> $null
     taskkill.exe /IM "sfc.exe" /T /F *> $null
     taskkill.exe /IM "Dism.exe" /T /F *> $null
-    
-    return
+    taskkill.exe /IM "code.exe" /T /F *> $null
 
-}
-
-function speedtest([String]$argument0, [String]$argument1, [String]$argument2, [String]$argument3, [String]$argument4, [String]$argument5, [String]$argument6, [String]$argument7, [String]$argument8) {
-
-    [String[]]$arguments=$argument0, $argument1, $argument2, $argument3, $argument4, $argument5, $argument6, $argument7, $argument8
-
-    $arguments.ForEach(
-
-        {
-
-            $i=0
-
-            if($null -eq $arguments[$i]) {
-                
-                $i++
-                $arguments[$i]=$arguments[$i].Replace($null, "")
-
-            } else {
-
-                $i++
-                $arguments[$i]=$arguments[$i].Trim("`n").Trim(" ").ToLower()
-
-            }
-
-        }
-
-    )
-
-    if($arguments -eq "--l") {
-
-        $dateyear=Get-Date -Format "yyyy"
-        $datemonth=Get-Date -Format "MM"
-        $dateday=Get-Date -Format "dd"
-        $date=Get-Date -Format "HH.mm.ss"
-        
-        New-Item -Path "$env:USERPROFILE\Documents\speedtests\$dateyear\$datemonth\$dateday" -ItemType Directory -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue -ProgressAction SilentlyContinue -Force *> $null
-
-        for($i=0; $i -le 4; $i++) {
-
-            Start-Process -FilePath "pwsh.exe" -ArgumentList "-NoLogo -Command `"speedtest.exe -P 8 -f human-readable | Out-File -FilePath `"$env:USERPROFILE\Documents\speedtests\$dateyear\$datemonth\$dateday\speedtest_$date.log`" -Append -Force`"" -NoNewWindow -Wait
-
-        }
-
-        $down=(Get-Content -Path "$env:USERPROFILE\Documents\speedtests\$dateyear\$datemonth\$dateday\speedtest_$date.log" -Force | findstr.exe "Download").Trim("`n").Trim(" ")
-        $up=(Get-Content -Path "$env:USERPROFILE\Documents\speedtests\$dateyear\$datemonth\$dateday\speedtest_$date.log" -Force | findstr.exe "Upload").Trim("`n").Trim(" ")
-        
-        $down | Format-Table
-        $up | Format-Table
-
-    } else {
-
-        speedtest.exe $arguments[0] $arguments[1] $arguments[2] $arguments[3] $arguments[4] $arguments[5] $arguments[6] $arguments[7] $arguments[8]
-
-    }
-
-    return
-
-}
-
-function repair {
-
-    try {
-    
-        Start-Process -FilePath "pwsh.exe" -ArgumentList "-NoLogo -Command `"sfc.exe /verifyonly;sfc.exe /verifyonly;sfc.exe /verifyonly;sfc.exe /scannow;sfc.exe /scannow;sfc.exe /scannow;Dism.exe /Online /Cleanup-Image /CheckHealth;Dism.exe /Online /Cleanup-Image /ScanHealth;Dism.exe /Online /Cleanup-Image /RestoreHealth`"" -Verb RunAs  -WindowStyle Minimized
-
-    } catch [System.InvalidOperationException] {
-        
-        Write-Output -InputObject "Elevation Request Denied. Cannot Continue!"
-
-    }
-    
     return
 
 }
@@ -204,3 +283,4 @@ Set-Alias -Name "repairme" -Value "repair"
 Set-Alias -Name "windowsrepair" -Value "repair"
 Set-Alias -Name "fast.com" -Value "speedtest"
 Set-Alias -Name "speedtest.net" -Value "speedtest"
+Set-Alias -Name "router" -Value "ssh"
