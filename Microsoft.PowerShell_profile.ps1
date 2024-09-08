@@ -111,15 +111,59 @@ function restart() {
 
 }
 
+function ytdl() {
+
+    Clear-Host
+
+    [String]$youtube_link = Read-Host "Enter YouTube Video Link"
+    [String]$creator_name = Read-Host "Enter the Name of the YouTube Creator"
+    [String]$output_path = "$($env:USERPROFILE)\Videos\$($creator_name)\"
+
+    ${yt-dlp_start} = Start-Process -FilePath "yt-dlp.exe" -ArgumentList "$($youtube_link) --audio-multistreams --video-multistreams --format `"bv+ba/b`" -S `"ext,proto`" --paths `"$($output_path)`"" -NoNewWindow -Wait -PassThru
+
+    [String]$run_again = "$(Read-Host -Prompt "Do you want to download another song/album?")"
+
+    if($run_again.ToLower() -eq "yes" -or ($run_again.ToLower() -eq "y")) {
+
+        ytdl
+
+    } else {
+
+        return
+
+    }
+
+    return
+
+}
+
 function spotdl() {
 
-    $spotify_link = Read-Host "Enter Spotify Album or Song or Artist Link"
-    $album_name = Read-Host "Enter the Name of the Song or Album"
-    $artist_name = Read-Host "Enter the Name of the Artist"
+    Clear-Host
+
+    [String]$spotify_link = Read-Host "Enter Spotify Album or Song or Artist Link"
+    [String]$album_name = Read-Host "Enter the Name of the Song or Album"
+    [String]$artist_name = Read-Host "Enter the Name of the Artist"
+    [String]$m3u_original_filepath = "$($env:USERPROFILE)\$($album_name).m3u"
+    [String]$output_path = "$($env:USERPROFILE)\Music\$($artist_name)\$($album_name)"
+    [String]$m3u_new_filepath = "$($output_path)\$($album_name).m3u"
     
-    Start-Process -FilePath "spotdl.exe" -ArgumentList "download $($spotify_link) --format flac --bitrate 320k --threads $((Get-WmiObject -class win32_processor -Property NumberOfLogicalProcessors).NumberOfLogicalProcessors) --audio youtube-music youtube soundcloud --preload --max-retries 5 --output `"$($env:USERPROFILE)\Music\$($artist_name)\$($album_name)`" --m3u `"$($album_name).m3u`" --scan-for-songs --overwrite metadata --sponsor-block --add-unavailable --print-errors" -NoNewWindow -Wait
-    
-    Move-Item -Path "$($env:USERPROFILE)\$($album_name).m3u" -Destination "$($env:USERPROFILE)\Music\$($artist_name)\$($album_name)\$($album_name).m3u" -Force
+    $spotdl_start = Start-Process -FilePath "spotdl.exe" -ArgumentList "download $($spotify_link) --format flac --bitrate 320k --threads $((Get-WmiObject -class win32_processor -Property NumberOfLogicalProcessors).NumberOfLogicalProcessors) --audio youtube-music youtube soundcloud --preload --max-retries 5 --output `"$($output_path)`" --m3u `"$($album_name).m3u`" --scan-for-songs --overwrite metadata --sponsor-block --add-unavailable --print-errors" -NoNewWindow -Wait -PassThru
+
+    Move-Item -Path "$($m3u_original_filepath)" -Destination "$($m3u_new_filepath)" -Force
+    $user_modifies_m3u = Start-Process -FilePath "code.cmd" -ArgumentList "`"$($m3u_new_filepath)`"" -PassThru -WindowStyle Maximized
+
+    [String]$run_again = "$(Read-Host -Prompt "Do you want to download another song/album?")"
+
+    if($run_again.ToLower() -eq "yes" -or ($run_again.ToLower() -eq "y")) {
+
+        spotdl
+
+    } else {
+
+        return
+
+    }
 
     return
 }
