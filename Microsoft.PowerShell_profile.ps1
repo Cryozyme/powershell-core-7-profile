@@ -312,6 +312,8 @@ function cancel {
     taskkill.exe /IM "sfc.exe" /T /F *> $null
     taskkill.exe /IM "Dism.exe" /T /F *> $null
     taskkill.exe /IM "code.exe" /T /F *> $null
+    taskkill.exe /IM "yt-dlp.exe" /T /F *> $null
+    taskkill.exe /IM "spotdl.exe" /T /F *> $null
 
     return
 
