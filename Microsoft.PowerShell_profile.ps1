@@ -247,35 +247,31 @@ function repair {
 
 function ssh() {
 
+    Clear-Host
     [CmdletBinding()]
-    param(
 
-        [String[]]$arguments
-
-    )
-
-    [String]$router = "administrator@192.168.50.1"
+    [String]$username = "$(Read-Host -Prompt `"What is the Username?`" -MaskInput)"
+    [String]$hostname_or_ip = "$(Read-Host -Prompt `"What is the FQDN, Hostname, or IP Address?`" -MaskInput)"
+    [String]$port_number = "$(Read-Host -Prompt `"What is the SSH Port Number?`" -MaskInput)"
+    [String]$router = "$($username)@$($hostname_or_ip)"
 
     try {
 
-        if($null -eq $arguments) {
+        if($null -eq ($router)) {
             
             Write-Verbose -Message "No Arguments Supplied"
 
-            ssh.exe
+            $ssh_run = Start-Process -FilePath "ssh.exe" -NoNewWindow -PassThru -Wait
         
-        } elseif($arguments -eq "WhichWayTree") {
+        } elseif($null -ne ($router)) {
             
-            Write-Verbose -Message "SSH Into Router: WhichWayTree"
+            Write-Verbose -Message "SSH Into Router"
 
-            ssh.exe $router
+            $ssh_run = Start-Process -FilePath "ssh.exe" -ArgumentList "`"$($router)`" -p `"$($port_number)`"" -NoNewWindow -PassThru -Wait
 
         } else {
             
-            Write-Verbose -Message "Other Arguments Supplied. Passing Straight Through To ssh.exe"
-
-            [String[]]$arguments = [String[]]$arguments.Trim(",")
-            ssh.exe $arguments
+            return
 
         }
     
@@ -329,4 +325,3 @@ Set-Alias -Name "repairme" -Value "repair"
 Set-Alias -Name "windowsrepair" -Value "repair"
 Set-Alias -Name "fast.com" -Value "speedtest"
 Set-Alias -Name "speedtest.net" -Value "speedtest"
-Set-Alias -Name "router" -Value "ssh"
