@@ -1,15 +1,6 @@
 #Path Variables#
-$env:Path += ";$env:PROGRAMFILES\PuTTY"
-$env:Path += ";$env:PROGRAMFILES\Mozilla Firefox"
-$env:Path += ";$env:PROGRAMFILES\NTLite"
-$env:Path += ";$env:PROGRAMFILES(x86)\Steam"
-$env:Path += ";$env:PROGRAMFILES(x86)\OpenOffice 4\program"
-$env:Path += ";$env:PROGRAMFILES(x86)\Adobe\Acrobat Reader DC\Reader"
-$env:Path += ";$env:PROGRAMFILES(x86)\Resource Hacker"
 $env:Path += ";$env:LOCALAPPDATA\Thorium\Application"
 $env:Path += ";$env:PROGRAMFILES\ookla-speedtest-1.2.0-win64"
-$env:Path += ";$env:LOCALAPPDATA\Programs\signal-desktop"
-$env:Path += ";$env:PROGRAMFILES\SysinternalsSuite"
 #Path Variables End#
 
 #Functions#
